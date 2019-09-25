@@ -16,29 +16,31 @@ function drawImage(imagedata) {
   document.body.appendChild(canvas)
 }
 
-const kernel = [
-  1, 4,  7,  4,  1,
-  4, 16, 26, 16, 4,
-  7, 26, 41, 26, 7,
-  4, 16, 26, 16, 4,
-  1, 4,  7,  4,  1,
-].map(v => v * 1/273)
+function binomial(n, k) {
+    let coeff = 1;
+    for (let x = n-k+1; x <= n; x++) coeff *= x;
+    for (x = 1; x <= k; x++) coeff /= x;
+    return coeff;
+}
 
 function makeKernel(r) {
   const w = []
   const res = []
 
   for (let i = 0; i <= 2*r; ++i) {
-    console.log(i);
+    w.push(binomial(2*r, i))
   }
 
+  let factor = 0
   for (let x of w) {
     for (let y of w) {
-      res.push([x, y])
+      const val = x * y
+      factor += val
+      res.push(val)
     }
   }
 
-  return res
+  return res.map(v => v * 1/factor)
 }
 
 function nthPixelIndex(imagedata, i, j) {
@@ -68,10 +70,10 @@ function getIndices(imagedata, i, j, r) {
   return res
 }
 
-function convolute(imagedata, i, j) {
+function convolute(imagedata, kernel, r, i, j) {
   let [sumR, sumG, sumB] = [0, 0, 0]
 
-  const indices = getIndices(imagedata, i, j, 2)
+  const indices = getIndices(imagedata, i, j, r)
   indices.forEach(([ k, l ], w) => {
     const v = nthPixelIndex(imagedata, k, l)
     const { data } = imagedata
@@ -94,12 +96,14 @@ function convolute(imagedata, i, j) {
   return imagedata
 }
 
-function blur(imagedata) {
+function blur(imagedata, r) {
   let res = imagedata
+
+  const kernel = makeKernel(r)
 
   for (let i = 0; i < imagedata.width; ++i) {
     for (let j = 0; j < imagedata.height; ++j) {
-      res = convolute(imagedata, i, j)
+      res = convolute(imagedata, kernel, r, i, j)
     }
   }
 
@@ -109,6 +113,6 @@ function blur(imagedata) {
 window.onload = () => {
   const img = document.querySelector('img')
   let imagedata = imagedataFromImg(img)
-  imagedata = blur(imagedata)
+  imagedata = blur(imagedata, 5)
   drawImage(imagedata)
 }
