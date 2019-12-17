@@ -113,6 +113,6 @@ function blur(imagedata, r) {
 window.onload = () => {
   const img = document.querySelector('img')
   let imagedata = imagedataFromImg(img)
-  imagedata = blur(imagedata, 5)
+  imagedata = blur(imagedata, 6)
   drawImage(imagedata)
 }
